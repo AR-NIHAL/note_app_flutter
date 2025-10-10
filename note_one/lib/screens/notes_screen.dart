@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:note_one/database/notes_database.dart';
+import 'package:note_one/screens/note_dialogue.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -23,6 +24,20 @@ class _NotesScreenState extends State<NotesScreen> {
     setState(() {
       notes = fetchNotes;
     });
+
+    final List<Color> noteColors = [
+      
+    ]
+
+    void showNoteDialogue({int? id, String? title, String? content, int colorIndex = 0}) {
+      showDialog(context: context, builder: dialogueContext) {
+        return NoteDialogue (
+          colorIndex: colorIndex,
+          noteColors: noteColors,
+          onNoteSaved: noteId: id,title: title: title: ,content: content: ,
+        )
+      }
+    }
   }
 
   @override
@@ -31,8 +46,15 @@ class _NotesScreenState extends State<NotesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('NotesApp'),
+        title: const Text('NotesApp',
+        style: TextStyle(color: Colors.black,
+        fontSize: 28,
+        fontWeight: FontWeight.w500),),
       ),
+      floatingActionButton: FloatingActionButton(onPressed: (){},
+      backgroundColor: Colors.white,
+      child: const Icon(Icons.add,
+      color: Colors.black87,),),
 
       body: notes.isEmpty
           ? Center(
