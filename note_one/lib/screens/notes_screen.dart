@@ -24,20 +24,56 @@ class _NotesScreenState extends State<NotesScreen> {
     setState(() {
       notes = fetchNotes;
     });
+  }
 
-    final List<Color> noteColors = [
-      
-    ]
+  final List<Color> noteColors = [
+    const Color(0xFFF3E5F5), // Light Lavender
+    const Color(0xFFE1F5FE), // Pale Cyan/Light Blue
+    const Color(0xFFFFF3E0), // Light Orange/Cream
+    const Color(0xFFF1F8E9), // Pale Green
+    const Color(0xFFD7CCC8), // Light Brown/Tuscany
+    const Color(0xFFFFCDD2), // Pale Red/Light Coral
+  ];
 
-    void showNoteDialogue({int? id, String? title, String? content, int colorIndex = 0}) {
-      showDialog(context: context, builder: dialogueContext) {
-        return NoteDialogue (
+  void showNoteDialogue({
+    int? id,
+    String? title,
+    String? content,
+    int colorIndex = 0,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dialogueContext) {
+        return NoteDialogue(
           colorIndex: colorIndex,
           noteColors: noteColors,
-          onNoteSaved: noteId: id,title: title: title: ,content: content: ,
-        )
-      }
-    }
+          noteId: id,
+          title: title,
+          content: content,
+          onNoteSaved:
+              (newTitle, newDescription, newColorIndex, currentDate) async {
+                if (id == null) {
+                  await NotesDatabase.instance.addNote(
+                    newTitle,
+                    newDescription,
+                    currentDate,
+                    newColorIndex,
+                  );
+                } else {
+                  await NotesDatabase.instance.updateNote(
+                    newTitle,
+                    newDescription,
+                    currentDate,
+                    newColorIndex,
+                    id,
+                  );
+                }
+
+                fetchNotes(); // refresh UI after saving
+              },
+        );
+      },
+    );
   }
 
   @override
@@ -46,15 +82,22 @@ class _NotesScreenState extends State<NotesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('NotesApp',
-        style: TextStyle(color: Colors.black,
-        fontSize: 28,
-        fontWeight: FontWeight.w500),),
+        title: const Text(
+          'NotesApp',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 28,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: (){},
-      backgroundColor: Colors.white,
-      child: const Icon(Icons.add,
-      color: Colors.black87,),),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showNoteDialogue();
+        },
+        backgroundColor: Colors.white,
+        child: const Icon(Icons.add, color: Colors.black87),
+      ),
 
       body: notes.isEmpty
           ? Center(

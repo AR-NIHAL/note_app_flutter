@@ -25,6 +25,12 @@ class NoteDialogue extends StatefulWidget {
 class _NoteDialogueState extends State<NoteDialogue> {
   late int _selectedColorIndex;
   @override
+  void initstate() {
+    super.initState();
+    _selectedColorIndex = widget.colorIndex;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final titleController = TextEditingController(text: widget.title);
     final descriptionController = TextEditingController(text: widget.content);
