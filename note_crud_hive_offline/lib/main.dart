@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:note_crud_hive_offline/features/notes/presentation/note_form_screen.dart';
-import 'package:note_crud_hive_offline/features/notes/presentation/notes_list_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+import 'features/notes/presentation/notes_list_screen.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //  Hive init
+  await Hive.initFlutter();
+
+  //  Open box (local database)
+  await Hive.openBox('notesBox');
+
   runApp(const MyApp());
 }
 
@@ -13,9 +22,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Notes Crud',
+      title: 'Notes CRUD',
       theme: ThemeData(useMaterial3: true),
-      home: NotesListScreen(),
+      home: const NotesListScreen(),
     );
   }
 }
