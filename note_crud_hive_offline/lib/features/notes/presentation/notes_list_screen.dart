@@ -47,7 +47,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
             MaterialPageRoute(builder: (_) => const NoteFormScreen()),
           );
 
-          // এখনো save হচ্ছে না, তাই manual refresh button আছে
+          // not save manual refresh button
         },
         child: const Icon(Icons.add),
       ),
