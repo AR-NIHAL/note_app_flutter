@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../data/note_model.dart';
+import '../data/notes_db.dart';
+
 class NoteFormScreen extends StatefulWidget {
-  const NoteFormScreen({super.key});
+  final NoteModel? note;
+  const NoteFormScreen({super.key, this.note});
 
   @override
   State<NoteFormScreen> createState() => _NoteFormScreenState();
@@ -12,6 +16,17 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   final _descCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  bool get isEdit => widget.note != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEdit) {
+      _titleCtrl.text = widget.note!.title;
+      _descCtrl.text = widget.note!.description;
+    }
+  }
+
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -19,23 +34,32 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     super.dispose();
   }
 
-  void _save() {
+  String _makeId() => DateTime.now().microsecondsSinceEpoch.toString();
+
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Module 5 এ এখানেই Hive এ save হবে
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Saved (UI only). Module 5 এ DB save হবে ✅'),
-      ),
+    final note = NoteModel(
+      id: isEdit ? widget.note!.id : _makeId(),
+      title: _titleCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      createdAt: isEdit ? widget.note!.createdAt : DateTime.now(),
     );
 
-    Navigator.pop(context);
+    if (isEdit) {
+      await NotesDb.updateNote(note);
+    } else {
+      await NotesDb.addNote(note);
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context, true); // ✅ changed=true
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Note')),
+      appBar: AppBar(title: Text(isEdit ? 'Edit Note' : 'Add Note')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -72,7 +96,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _save,
-                  child: const Text('Save'),
+                  child: Text(isEdit ? 'Update' : 'Save'),
                 ),
               ),
             ],

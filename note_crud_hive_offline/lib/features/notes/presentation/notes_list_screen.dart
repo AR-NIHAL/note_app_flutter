@@ -26,6 +26,47 @@ class _NotesListScreenState extends State<NotesListScreen> {
     loadNotes();
   }
 
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final res = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Delete note?'),
+          content: const Text('এই note টি delete করলে আর ফেরত আসবে না।'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return res ?? false;
+  }
+
+  Future<void> _deleteNote(NoteModel note) async {
+    final ok = await _confirmDelete(context);
+    if (!ok) return;
+
+    await NotesDb.deleteNote(note.id);
+    loadNotes();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Deleted: ${note.title}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,13 +82,12 @@ class _NotesListScreenState extends State<NotesListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Module 5 এ এখানে changed = true হলে reload হবে
-          await Navigator.push(
+          final changed = await Navigator.push<bool>(
             context,
             MaterialPageRoute(builder: (_) => const NoteFormScreen()),
           );
 
-          // not save manual refresh button
+          if (changed == true) loadNotes();
         },
         child: const Icon(Icons.add),
       ),
@@ -56,7 +96,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
-                  'No notes in database yet.\nModule 5 এ add করলে এখানে দেখাবে ✅',
+                  'No notes yet.\nTap + to add a note.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -67,6 +107,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final n = notes[index];
+
                 return Card(
                   child: ListTile(
                     title: Text(
@@ -79,14 +120,20 @@ class _NotesListScreenState extends State<NotesListScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Module 6 এ tap করে edit করবো ✅'),
+                    onTap: () async {
+                      final changed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NoteFormScreen(note: n),
                         ),
                       );
+
+                      if (changed == true) loadNotes();
                     },
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _deleteNote(n),
+                    ),
                   ),
                 );
               },
